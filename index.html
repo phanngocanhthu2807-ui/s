@@ -1,0 +1,1710 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#051c14">
+<title>Chuyến thuyền số 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #051c14;
+    --bg2: #0b3828;
+    --mid: #175c43;
+    --ice: #e6fbf2;
+    --mute: #8ec9b0;
+    --lamp: #f5d77f;
+    --gold: #e8c568;
+    --gold2: #9e7b2f;
+    --leaf: #34d399;
+    --serif: "Playfair Display", Georgia, "Times New Roman", serif;
+    --sans: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  html {
+    height: 100%;
+    scroll-padding-top: env(safe-area-inset-top, 0px);
+    background: var(--bg);
+  }
+
+  *, *::before, *::after {
+    box-sizing: inherit;
+  }
+
+  body {
+    margin: 0;
+    height: 100%;
+    background: radial-gradient(120% 85% at 50% 0%, var(--bg2), var(--bg) 72%);
+    color: var(--ice);
+    font-family: var(--sans);
+    font-weight: 300;
+    overflow: hidden;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 auto;
+    height: env(safe-area-inset-top, 0px);
+    background: var(--bg);
+    z-index: 10;
+  }
+
+  canvas#cv {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .noshow {
+    display: none !important;
+  }
+
+  button {
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  button:focus-visible {
+    outline: 2px solid var(--lamp);
+    outline-offset: 3px;
+  }
+
+  .btn {
+    background: linear-gradient(135deg, #f6e3a1, #d9b04f);
+    color: #1f1904;
+    border: 0;
+    border-radius: 999px;
+    padding: 0.82rem 1.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+    transition: filter 0.2s ease, transform 0.2s ease;
+  }
+
+  .btn.ghost {
+    background: transparent;
+    color: var(--ice);
+    border: 1px solid var(--mid);
+    box-shadow: none;
+  }
+
+  .btn:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+  }
+
+  .btn.ghost:hover {
+    border-color: var(--ice);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  /* ==================== TRANG BÌA ==================== */
+  #start {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1.5rem;
+    gap: 0.95rem;
+  }
+
+  #start .kick {
+    color: var(--mute);
+    margin: 0;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 0.86rem;
+    font-weight: 600;
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-weight: 800;
+    font-size: clamp(2.4rem, 10.5vw, 5.6rem);
+    line-height: 0.98;
+    margin: 0;
+    letter-spacing: 0.04em;
+  }
+
+  h1 span {
+    display: block;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--gold);
+  }
+
+  #start p.sub {
+    max-width: 33ch;
+    margin: 0.15rem 0 0.65rem;
+    line-height: 1.6;
+    color: var(--mute);
+  }
+
+  .hint {
+    font-size: 0.8rem;
+    color: var(--mute);
+  }
+
+  /* Con thuyền buồm trang bìa */
+  .boat-hero {
+    width: 158px;
+    height: 98px;
+    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.45));
+    animation: boat-rock 3.2s ease-in-out infinite alternate;
+  }
+
+  @keyframes boat-rock {
+    0% { transform: translateY(0) rotate(-3deg); }
+    100% { transform: translateY(-8px) rotate(3deg); }
+  }
+
+  /* ==================== KHUNG ỨNG DỤNG & THANH ĐIỀU HƯỚNG ==================== */
+  #app {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.9rem 1.1rem;
+  }
+
+  .track {
+    position: relative;
+    flex: 1;
+    height: 36px;
+  }
+
+  .track::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 25px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--mid), rgba(52, 211, 153, 0.45), var(--mid));
+  }
+
+  .stop {
+    position: absolute;
+    top: 20px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--mid);
+    transform: translateX(-50%);
+    transition: 0.4s;
+  }
+
+  .stop.done {
+    background: var(--leaf);
+    border-color: var(--leaf);
+  }
+
+  .stop.cur {
+    border-color: var(--lamp);
+    background: var(--lamp);
+    box-shadow: 0 0 10px var(--lamp);
+  }
+
+  .loco {
+    position: absolute;
+    top: -1px;
+    font-size: 1.4rem;
+    transform: translateX(-50%);
+    transition: left 0.9s cubic-bezier(0.6, 0, 0.3, 1);
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
+  }
+
+  .tg {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .tg button {
+    background: transparent;
+    border: 1px solid var(--mid);
+    border-radius: 999px;
+    padding: 0.32rem 0.82rem;
+    font-size: 0.78rem;
+    color: var(--mute);
+    transition: 0.2s;
+  }
+
+  .tg button[aria-pressed="true"] {
+    color: var(--bg);
+    background: var(--ice);
+    border-color: var(--ice);
+    font-weight: 600;
+  }
+
+  main {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+  }
+
+  .stage {
+    display: none;
+    position: absolute;
+    inset: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.8rem 1.3rem;
+    overflow-y: auto;
+    text-align: center;
+  }
+
+  .stage.on {
+    display: flex;
+    animation: in 0.7s ease both;
+  }
+
+  .stage::before, .stage::after {
+    content: "";
+    margin-block: auto;
+  }
+
+  @keyframes in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .lab {
+    color: var(--lamp);
+    font-size: 0.85rem;
+    margin: 0 0 0.45rem;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+
+  h2 {
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: clamp(1.45rem, 4.8vw, 2.45rem);
+    margin: 0 0 1rem;
+    line-height: 1.2;
+  }
+
+  /* ==================== TOA 1: VÉ LÊN THUYỀN & 4 LỜI CHÚC ==================== */
+  .wish {
+    max-width: 34em;
+    font-family: var(--serif);
+    font-size: clamp(0.95rem, 3vw, 1.18rem);
+    line-height: 1.65;
+    font-weight: 700;
+  }
+
+  .wish .ln {
+    display: block;
+    margin: 0.5rem 0;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 1.1s, transform 1.1s;
+  }
+
+  .wish .ln.show {
+    opacity: 1;
+    transform: none;
+  }
+
+  .wish .ln:first-child {
+    font-size: 1.24em;
+    color: var(--lamp);
+  }
+
+  .nf {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+    margin: 0 0 1rem;
+  }
+
+  .nf label {
+    font-family: var(--serif);
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--gold);
+  }
+
+  .nf input {
+    width: min(86vw, 320px);
+    padding: 0.8rem 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--gold2);
+    background: #08271c;
+    color: var(--ice);
+    font: inherit;
+    font-size: 1.05rem;
+    text-align: center;
+  }
+
+  .nf input:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+
+  .ticket {
+    position: relative;
+    display: flex;
+    width: min(94vw, 440px);
+    margin: 0 0 1rem;
+    color: #1f1904;
+    text-align: left;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #f6e3a1, #d9b04f 55%, #b8903a);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  }
+
+  .ticket::before, .ticket::after {
+    content: "";
+    position: absolute;
+    left: 67%;
+    width: 18px;
+    height: 18px;
+    margin-left: -9px;
+    border-radius: 50%;
+    background: var(--bg);
+  }
+
+  .ticket::before { top: -9px; }
+  .ticket::after { bottom: -9px; }
+
+  .ticket.on {
+    animation: tk 0.9s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+  }
+
+  @keyframes tk {
+    from { opacity: 0; transform: translateY(-36px) rotate(-4deg) scale(0.92); }
+  }
+
+  .tl {
+    flex: 2;
+    padding: 0.9rem 1rem;
+  }
+
+  .tl small {
+    display: block;
+    font-size: 0.72rem;
+    opacity: 0.8;
+    font-weight: 600;
+  }
+
+  .tl strong {
+    display: block;
+    font-family: var(--serif);
+    font-size: 1.35rem;
+    line-height: 1.2;
+    margin: 0.15rem 0;
+    word-break: break-word;
+  }
+
+  .tl span {
+    display: block;
+    font-size: 0.8rem;
+  }
+
+  .tr {
+    flex: 1;
+    padding: 0.9rem 0.8rem;
+    border-left: 2px dashed rgba(107, 78, 20, 0.55);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.2rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .tr i {
+    font-style: normal;
+  }
+
+  .stamp {
+    position: absolute;
+    top: 0.6rem;
+    right: 36%;
+    border: 2px solid #065f46;
+    color: #065f46;
+    padding: 0 0.45rem;
+    font-style: normal;
+    font-weight: 700;
+    font-size: 0.72rem;
+    border-radius: 4px;
+    opacity: 0.9;
+    transform: rotate(-10deg);
+  }
+
+  .ticket.on .stamp {
+    animation: st 0.45s 0.9s both;
+  }
+
+  @keyframes st {
+    from { opacity: 0; transform: rotate(-10deg) scale(2.4); }
+  }
+
+  /* ==================== TOA 2: 6 CÁNH DIỀU KHÁC NHAU ==================== */
+  .vases {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.8rem 1rem;
+    max-width: 780px;
+    position: relative;
+  }
+
+  .vase {
+    background: linear-gradient(145deg, rgba(14, 61, 44, 0.88), rgba(6, 30, 21, 0.96));
+    border: 1px solid color-mix(in srgb, var(--c) 65%, transparent);
+    border-radius: 18px;
+    width: 116px;
+    min-height: 142px;
+    padding: 0.65rem 0.4rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    color: var(--mute);
+    transition: transform 0.35s, border-color 0.35s, box-shadow 0.35s;
+  }
+
+  .vase svg {
+    width: 80px;
+    height: 80px;
+    overflow: visible;
+    transition: transform 0.35s;
+  }
+
+  .vase .kite-body {
+    fill: color-mix(in srgb, var(--c) 28%, #0a2e21);
+    stroke: var(--c);
+    stroke-width: 2.3;
+    stroke-linejoin: round;
+    transition: 0.35s;
+  }
+
+  .vase .kite-accent {
+    fill: var(--c);
+    opacity: 0.45;
+    transition: 0.35s;
+  }
+
+  .vase .kite-spar, .vase .kite-tail {
+    fill: none;
+    stroke: var(--c);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.85;
+  }
+
+  .vase.lit {
+    transform: translateY(-8px) scale(1.06);
+    color: var(--ice);
+    border-color: var(--c);
+    box-shadow: 0 0 24px color-mix(in srgb, var(--c) 55%, transparent), inset 0 0 18px color-mix(in srgb, var(--c) 14%, transparent);
+  }
+
+  .vase.lit svg {
+    animation: kite-soar 1.6s ease-in-out infinite alternate;
+  }
+
+  @keyframes kite-soar {
+    0% { transform: translateY(0) rotate(-4deg); }
+    100% { transform: translateY(-5px) rotate(5deg); }
+  }
+
+  .vase.lit .kite-body {
+    fill: color-mix(in srgb, var(--c) 52%, #0a2e21);
+    filter: drop-shadow(0 0 8px var(--c));
+  }
+
+  .vase.lit .kite-accent {
+    opacity: 1;
+  }
+
+  .vase b {
+    font-weight: 600;
+    font-size: 0.84rem;
+  }
+
+  .vase .subtopic {
+    font-size: 0.66rem;
+    color: var(--mute);
+    line-height: 1.2;
+  }
+
+  #toss {
+    margin-top: 1.1rem;
+  }
+
+  #toss[disabled] {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  #vmsg {
+    min-height: 5em;
+    max-width: 34em;
+    margin: 0.95rem 0 0;
+    line-height: 1.65;
+    font-size: 1rem;
+    color: var(--ice);
+  }
+
+  #vmsg b {
+    color: var(--gold);
+  }
+
+  .vase.randoming {
+    animation: kitePulse 0.2s ease-in-out infinite alternate;
+  }
+
+  @keyframes kitePulse {
+    from { filter: brightness(1); }
+    to { filter: brightness(1.75); transform: scale(1.05); }
+  }
+
+  /* ==================== TOA 3: 2 BẠN ĐỒNG HÀNH ==================== */
+  #s3 {
+    padding: 0;
+  }
+
+  #s3 .top {
+    position: absolute;
+    top: 0.5rem;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    pointer-events: none;
+    padding: 0 1rem;
+  }
+
+  #sky {
+    position: absolute;
+    inset: 5.2rem 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nm {
+    position: absolute;
+    white-space: nowrap;
+    font-family: var(--serif);
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    transform: translate(-50%, -50%);
+    padding: 0.7rem 1.45rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(14, 61, 44, 0.82), rgba(6, 32, 22, 0.92));
+    border: 1.5px solid rgba(232, 197, 104, 0.6);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35), 0 0 22px rgba(52, 211, 153, 0.2);
+    animation: fl var(--d) ease-in-out var(--dl) infinite alternate;
+    transition: color 0.3s, text-shadow 0.3s, border-color 0.3s;
+    cursor: default;
+  }
+
+  .nm:hover {
+    color: #ffffff;
+    text-shadow: 0 0 18px var(--lamp);
+    border-color: var(--lamp);
+  }
+
+  .nm:nth-child(odd) {
+    color: var(--gold);
+  }
+
+  @keyframes fl {
+    from { translate: calc(var(--x) * -1) calc(var(--y) * -1); }
+    to { translate: var(--x) var(--y); }
+  }
+
+  body.nofx .nm { animation: none; }
+  body.nofx canvas#cv { display: none; }
+
+  /* ==================== TOA 4: THIỆP CHÚC MỪNG & VÉ CÀO MAY MẮN ==================== */
+  .s4-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.95rem;
+    width: 100%;
+    max-width: 460px;
+  }
+
+  .card {
+    position: relative;
+    width: 100%;
+    padding: 1.35rem 1.25rem;
+    border-radius: 12px;
+    background: linear-gradient(160deg, #0d3b2a, #062117);
+    border: 1px solid var(--gold);
+    box-shadow: 0 0 0 5px #062117, 0 0 0 6px rgba(232, 197, 104, 0.4), 0 16px 40px rgba(0, 0, 0, 0.5);
+    text-align: center;
+  }
+
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    border: 1px solid rgba(232, 197, 104, 0.28);
+    pointer-events: none;
+    border-radius: 6px;
+  }
+
+  .card p {
+    margin: 0.22rem auto;
+    color: var(--ice);
+    line-height: 1.58;
+    font-size: 0.92rem;
+  }
+
+  .card .cs {
+    color: var(--gold);
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+
+  .card .cd {
+    font-family: var(--serif);
+    font-weight: 800;
+    font-size: 2.6rem;
+    line-height: 1.05;
+    background: linear-gradient(180deg, #f6e3a1, #c9a04a);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .card .cto {
+    color: var(--mute);
+    margin-top: 0.5rem;
+    font-size: 0.84rem;
+  }
+
+  .card h2 {
+    font-size: clamp(1.38rem, 6vw, 1.95rem);
+    margin: 0.12rem 0 0.5rem;
+    color: var(--gold);
+    word-break: break-word;
+  }
+
+  .card .cl {
+    font-style: italic;
+    color: var(--lamp);
+    font-size: 0.88rem;
+  }
+
+  .card .cf {
+    font-family: var(--serif);
+    font-weight: 700;
+    margin-top: 0.65rem;
+    letter-spacing: 0.14em;
+    color: var(--mute);
+    font-size: 0.82rem;
+  }
+
+  .stage.on .card {
+    animation: cdi 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  @keyframes cdi {
+    from { opacity: 0; transform: translateY(20px) rotate(-1.5deg) scale(0.96); }
+  }
+
+  .scratch-box {
+    width: 100%;
+    background: linear-gradient(145deg, rgba(13, 59, 42, 0.92), rgba(6, 33, 23, 0.97));
+    border: 1.5px solid rgba(52, 211, 153, 0.5);
+    border-radius: 16px;
+    padding: 0.9rem 1rem 1rem;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  }
+
+  .scratch-title {
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 1.12rem;
+    color: var(--lamp);
+    margin: 0 0 0.22rem;
+  }
+
+  .scratch-sub {
+    font-size: 0.8rem;
+    color: var(--mute);
+    margin: 0 0 0.65rem;
+  }
+
+  .scratch-frame {
+    position: relative;
+    width: min(100%, 340px);
+    height: 140px;
+    margin: 0 auto;
+    border-radius: 14px;
+    padding: 4px;
+    background: linear-gradient(135deg, #f6e3a1, #34d399, #d9b04f);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .scratch-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    background: radial-gradient(circle at 50% 30%, #134e38, #062117);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem;
+  }
+
+  .prize-icon {
+    font-size: 2.3rem;
+    line-height: 1.1;
+    margin-bottom: 0.22rem;
+    animation: prize-pop 1.5s ease-in-out infinite;
+  }
+
+  @keyframes prize-pop {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.12); }
+  }
+
+  .prize-tag {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--mute);
+    font-weight: 600;
+  }
+
+  .prize-title {
+    font-family: var(--serif);
+    font-size: 1.24rem;
+    font-weight: 800;
+    color: var(--lamp);
+    margin-top: 0.1rem;
+  }
+
+  #scratchCv {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 4;
+    cursor: crosshair;
+    touch-action: none;
+    transition: opacity 0.45s ease;
+  }
+
+  #scratchCv.done {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .scratch-actions {
+    display: flex;
+    justify-content: center;
+    gap: 0.55rem;
+    margin-top: 0.65rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-sm {
+    padding: 0.42rem 0.95rem;
+    font-size: 0.78rem;
+    border-radius: 999px;
+    border: 1px solid var(--gold2);
+    background: rgba(245, 215, 127, 0.14);
+    color: var(--lamp);
+    font-weight: 600;
+    transition: background 0.2s;
+  }
+
+  .btn-sm:hover {
+    background: rgba(245, 215, 127, 0.26);
+  }
+
+  /* ==================== TOA 5: BẾN CUỐI SỨC KHỎE & MÃI BÊN NHAU ==================== */
+  .s5-card {
+    position: relative;
+    width: min(94%, 460px);
+    padding: 2rem 1.5rem;
+    border-radius: 20px;
+    background: linear-gradient(155deg, #0f4431, #062117);
+    border: 1.5px solid var(--leaf);
+    box-shadow: 0 0 0 6px #062117, 0 0 0 7px rgba(52, 211, 153, 0.35), 0 20px 50px rgba(0, 0, 0, 0.5);
+    text-align: center;
+  }
+
+  .s5-emblem {
+    font-size: 2.8rem;
+    margin-bottom: 0.4rem;
+    display: inline-block;
+    animation: boat-rock 2.8s ease-in-out infinite alternate;
+  }
+
+  .s5-card h2 {
+    font-family: var(--serif);
+    font-size: clamp(1.5rem, 5.5vw, 2.25rem);
+    color: var(--lamp);
+    margin: 0.2rem 0 0.8rem;
+  }
+
+  .s5-text {
+    font-size: 1rem;
+    line-height: 1.75;
+    color: var(--ice);
+    margin: 0 auto 0.9rem;
+    max-width: 34ch;
+  }
+
+  .s5-highlight {
+    display: inline-block;
+    padding: 0.55rem 1.25rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(52, 211, 153, 0.2), rgba(245, 215, 127, 0.2));
+    border: 1px solid var(--gold);
+    color: var(--lamp);
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 1.12rem;
+    margin-top: 0.3rem;
+  }
+
+  /* Dải biểu tượng trang trí */
+  .toy-strip {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin: 0.15rem auto 0.75rem;
+    max-width: 680px;
+  }
+
+  .toy-strip span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    padding: 0.35rem 0.68rem;
+    border: 1px solid rgba(52, 211, 153, 0.42);
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(16, 74, 53, 0.75), rgba(6, 32, 22, 0.92));
+    color: var(--ice);
+    font-size: 0.76rem;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  }
+
+  #s3 .toy-strip {
+    margin: 0.15rem auto 0;
+  }
+
+  #s3 .top h2 {
+    margin-bottom: 0.4rem;
+  }
+
+  /* Các biểu tượng trôi nổi ở nền */
+  .floating-toys {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+    isolation: isolate;
+  }
+
+  .floating-toy {
+    position: absolute;
+    left: var(--left);
+    top: var(--top);
+    font-size: var(--size);
+    opacity: var(--opacity);
+    filter: drop-shadow(0 5px 9px rgba(0, 0, 0, 0.45));
+    transform: translate3d(0, 0, 0) rotate(var(--rotate));
+    animation: toy-float var(--duration) ease-in-out var(--delay) infinite alternate;
+  }
+
+  @keyframes toy-float {
+    0% { transform: translate3d(0, 0, 0) rotate(var(--rotate)); }
+    50% { transform: translate3d(var(--drift), -20px, 0) rotate(calc(var(--rotate) + 8deg)); }
+    100% { transform: translate3d(calc(var(--drift) * -1), 14px, 0) rotate(calc(var(--rotate) - 7deg)); }
+  }
+
+  .sp {
+    position: fixed;
+    z-index: 20;
+    width: 7px;
+    height: 7px;
+    margin: -3px;
+    border-radius: 50%;
+    background: radial-gradient(#fff6c8, #34d399);
+    pointer-events: none;
+  }
+
+  /* Thanh điều hướng chân trang */
+  footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 1.1rem 1.15rem;
+  }
+
+  footer button {
+    min-width: 7.8rem;
+  }
+
+  footer .ghost[disabled] {
+    visibility: hidden;
+  }
+
+  footer #next[disabled] {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  @media (max-height: 700px) {
+    .toy-strip { gap: 0.3rem; margin-bottom: 0.4rem; }
+    .toy-strip span { padding: 0.24rem 0.5rem; font-size: 0.7rem; }
+    .card { padding: 1.05rem 1rem; }
+    .scratch-frame { height: 122px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<canvas id="cv" aria-hidden="true"></canvas>
+<div class="floating-toys" id="floatingToys" aria-hidden="true"></div>
+
+<!-- ==================== TRANG BÌA ==================== -->
+<section id="start">
+  <p class="kick">Đặc biệt ngày 19/11</p>
+  <h1>CHUYẾN THUYỀN<span>SỐ 1</span></h1>
+  <svg class="boat-hero" viewBox="0 0 180 110" aria-label="Con thuyền buồm xanh lá và vàng">
+    <defs>
+      <linearGradient id="sailMain" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#a7f3d0"/>
+        <stop offset="100%" stop-color="#10b981"/>
+      </linearGradient>
+      <linearGradient id="sailSide" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#fde68a"/>
+        <stop offset="100%" stop-color="#d97706"/>
+      </linearGradient>
+      <linearGradient id="hullGrad" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#065f46"/>
+        <stop offset="50%" stop-color="#047857"/>
+        <stop offset="100%" stop-color="#064e3b"/>
+      </linearGradient>
+    </defs>
+    <!-- Cột buồm -->
+    <line x1="88" y1="12" x2="88" y2="74" stroke="#f5d77f" stroke-width="3" stroke-linecap="round"/>
+    <!-- Cờ nhỏ trên đỉnh -->
+    <path d="M88 12 L106 17 L88 22 Z" fill="#f5d77f"/>
+    <!-- Cánh buồm chính -->
+    <path d="M91 20 Q132 42 136 70 L91 70 Z" fill="url(#sailMain)" stroke="#ecfdf5" stroke-width="1.5"/>
+    <!-- Cánh buồm phụ -->
+    <path d="M85 26 Q52 46 46 70 L85 70 Z" fill="url(#sailSide)" stroke="#fef3c7" stroke-width="1.5"/>
+    <!-- Thân thuyền -->
+    <path d="M24 72 L156 72 L138 92 L42 92 Z" fill="url(#hullGrad)" stroke="#6ee7b7" stroke-width="2" stroke-linejoin="round"/>
+    <line x1="34" y1="80" x2="146" y2="80" stroke="#f5d77f" stroke-width="2"/>
+    <!-- Sóng nước -->
+    <path d="M16 96 Q36 90 56 96 T96 96 T136 96 T166 96" fill="none" stroke="#6ee7b7" stroke-width="2.2" stroke-linecap="round"/>
+  </svg>
+  <p class="sub">Một chuyến thuyền êm đềm dành riêng cho các chàng trai nhân ngày Quốc tế Nam giới.</p>
+  <button class="btn" id="go">Bắt đầu hành trình</button>
+  <p class="hint">Hành trình có âm thanh, hãy bật loa hoặc đeo tai nghe.</p>
+</section>
+
+<!-- ==================== HÀNH TRÌNH 5 TOA ==================== -->
+<div id="app" class="noshow">
+  <header>
+    <div class="track" id="track"><span class="loco" id="loco">⛵</span></div>
+    <div class="tg">
+      <button id="bm" aria-pressed="true">Nhạc nền</button>
+      <button id="bf" aria-pressed="true">Hiệu ứng</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- TOA 1 -->
+    <section class="stage" id="s1">
+      <p class="lab">Toa 1</p>
+      <div class="toy-strip" aria-label="Biểu tượng hành trình">
+        <span>⛵ Thuyền buồm</span><span>🍃 Lá xanh</span><span>🧭 La bàn</span><span>🌊 Sóng êm</span>
+      </div>
+      <form class="nf" id="nf">
+        <label for="nm">Điền tên để nhận vé lên thuyền</label>
+        <input id="nm" maxlength="32" autocomplete="off" placeholder="Họ và tên của cậu">
+        <button class="btn" type="submit">Nhận vé</button>
+      </form>
+      <div class="ticket noshow" id="tk">
+        <div class="tl">
+          <small>Vé lên thuyền Emerald Express</small>
+          <strong id="tname"></strong>
+          <span>Bến đỗ: Ngày Quốc tế Nam giới</span>
+          <em class="stamp">Đã soát vé</em>
+        </div>
+        <div class="tr">
+          <span>Toa 1</span>
+          <span>Ghế <i id="seat"></i></span>
+          <span>19/11</span>
+        </div>
+      </div>
+      <div class="wish noshow" id="wish">
+        <span class="ln">Chúc mừng Ngày Quốc tế Nam giới!</span>
+        <span class="ln">Hôm nay là dịp để tôn vinh sức mạnh, lòng kiên định và trái tim ấm áp của cậu.</span>
+        <span class="ln">Mong cậu luôn giữ vững bản lĩnh, nhưng cũng đừng quên tận hưởng những niềm vui giản dị trong cuộc sống.</span>
+        <span class="ln">Hãy để mỗi ngày trôi qua là một minh chứng cho sự tử tế và trách nhiệm mà cậu mang đến cho thế giới.</span>
+      </div>
+    </section>
+
+    <!-- TOA 2: 6 CÁNH DIỀU GỬI LỜI CHÚC -->
+    <section class="stage" id="s2">
+      <p class="lab">Toa 2</p>
+      <div class="toy-strip" aria-label="Biểu tượng trong toa">
+        <span>🪁 Diều no gió</span><span>🍃 Gió lành</span><span>⛵ Thuyền xanh</span>
+      </div>
+      <h2>Những cánh diều gửi lời chúc</h2>
+      <div class="vases" id="vases" aria-label="Sáu cánh diều chủ đề"></div>
+      <button class="btn" id="toss">Thả diều đón gió may mắn</button>
+      <p id="vmsg" aria-live="polite">Bấm nút để thả ngẫu nhiên một cánh diều và nhận lời chúc dành riêng cho cậu.</p>
+    </section>
+
+    <!-- TOA 3: 2 CÁI TÊN CÙNG LÊN THUYỀN -->
+    <section class="stage" id="s3">
+      <div class="top">
+        <p class="lab">Toa 3</p>
+        <h2>Những cái tên cùng lên thuyền</h2>
+        <div class="toy-strip">
+          <span>⛵ Bạn đồng hành</span><span>🌿 Gió mát</span><span>✨ Bình an</span>
+        </div>
+      </div>
+      <div id="sky"></div>
+    </section>
+
+    <!-- TOA 4: THIỆP CHÚC MỪNG & VÉ CÀO MAY MẮN BÍ ẨN -->
+    <section class="stage end" id="s4">
+      <p class="lab">Toa 4</p>
+      <div class="s4-wrap">
+        <article class="card" id="card">
+          <p class="cs">Thiệp chúc mừng Ngày Quốc tế Nam giới</p>
+          <p class="cd">19/11</p>
+          <p class="cto">Gửi</p>
+          <h2 id="cname"></h2>
+          <p class="cm">Cảm ơn cậu đã là một phần của chuyến hành trình này. Chúc cậu luôn vững vàng, tử tế và tràn đầy niềm vui giản dị.</p>
+          <p class="cl" id="clucky"></p>
+          <p class="cf">CHUYẾN THUYỀN SỐ 1</p>
+        </article>
+
+        <div class="scratch-box">
+          <p class="scratch-title">🎟️ Vé Cào May Mắn Bí Ẩn</p>
+          <p class="scratch-sub">Dùng ngón tay hoặc chuột cào lớp nhũ bên dưới để mở quà nhé!</p>
+          <div class="scratch-frame">
+            <div class="scratch-inner">
+              <div class="prize-icon" id="prizeIcon">🌪️🤗</div>
+              <div class="prize-tag">Chúc mừng cậu nhận được</div>
+              <div class="prize-title" id="prizeTitle">Cái ôm lốc xoáy</div>
+              <canvas id="scratchCv" width="332" height="134"></canvas>
+            </div>
+          </div>
+          <div class="scratch-actions">
+            <button type="button" class="btn-sm" id="reScratchBtn">🔄 Đổi thẻ cào khác</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TOA 5: BẾN CUỐI SỨC KHỎE & MÃI BÊN NHAU -->
+    <section class="stage end" id="s5">
+      <p class="lab">Toa 5 · Bến cuối</p>
+      <div class="toy-strip">
+        <span>💚 Sức khỏe</span><span>⛵ Vượt sóng</span><span>🤝 Đồng hành</span><span>🍀 Bình an</span>
+      </div>
+      <article class="s5-card" id="s5card">
+        <div class="s5-emblem">⛵💚</div>
+        <h2>Chúc Sức Khỏe &amp; Mãi Bên Nhau</h2>
+        <p class="s5-text">
+          Chúc cậu luôn dồi dào sức khỏe, tinh thần phơi phới, ăn ngon ngủ yên và tràn đầy năng lượng tích cực trên mọi hải trình phía trước.
+        </p>
+        <p class="s5-text">
+          Dù nắng đẹp hay sóng gió, con thuyền tình bạn này vẫn luôn vững tay chèo để chúng ta cùng đồng hành qua thật nhiều mùa 19/11 rực rỡ.
+        </p>
+        <div class="s5-highlight">✨ Mãi bên nhau bạn nhé! ✨</div>
+      </article>
+      <p class="hint" style="margin-top: 0.85rem;">Chụp màn hình để lưu giữ kỷ niệm trên chuyến thuyền nhé.</p>
+    </section>
+  </main>
+
+  <footer>
+    <button class="btn ghost" id="prev">Toa trước</button>
+    <button class="btn" id="next">Toa tiếp theo</button>
+  </footer>
+</div>
+
+<script>
+  const NAMES = ["Âu Dương Bảo Toàn", "Trần Thiện Bảo"];
+
+  const VASES = [
+    ["Học tập", "#6ee7b7", "Kiến thức và những mục tiêu"],
+    ["Công nghệ", "#38bdf8", "Đam mê khám phá"],
+    ["Tình bạn", "#ff8ab3", "Những người đồng hành"],
+    ["Ước mơ", "#c49aff", "Dự định phía trước"],
+    ["Bản lĩnh", "#ffc45e", "Sự tự tin và kiên trì"],
+    ["Sức khỏe", "#86efac", "Năng lượng mỗi ngày"]
+  ];
+
+  /* 6 hình dáng SVG con diều khác nhau */
+  const KITE_SVGS = [
+    // 1. Học tập: Diều kim cương truyền thống với đuôi nơ
+    `<svg viewBox="0 0 84 84" aria-hidden="true">
+      <polygon class="kite-body" points="42,6 68,34 42,64 16,34"/>
+      <polygon class="kite-accent" points="42,6 68,34 42,34"/>
+      <line class="kite-spar" x1="42" y1="6" x2="42" y2="64"/>
+      <line class="kite-spar" x1="16" y1="34" x2="68" y2="34"/>
+      <path class="kite-tail" d="M42,64 Q36,72 44,77 T38,83"/>
+      <polygon class="kite-accent" points="35,73 41,75 35,77"/>
+      <polygon class="kite-accent" points="47,73 41,75 47,77"/>
+    </svg>`,
+    // 2. Công nghệ: Diều tam giác Delta hiện đại 2 đuôi lượn
+    `<svg viewBox="0 0 84 84" aria-hidden="true">
+      <polygon class="kite-body" points="42,8 74,56 42,46 10,56"/>
+      <polygon class="kite-accent" points="42,8 56,50 42,46 28,50"/>
+      <line class="kite-spar" x1="42" y1="8" x2="42" y2="46"/>
+      <line class="kite-spar" x1="22" y1="38" x2="62" y2="38"/>
+      <path class="kite-tail" d="M26,52 Q20,67 27,81"/>
+      <path class="kite-tail" d="M58,52 Q64,67 57,81"/>
+    </svg>`,
+    // 3. Tình bạn: Diều cánh bướm mềm mại
+    `<svg viewBox="0 0 84 84" aria-hidden="true">
+      <path class="kite-body" d="M42,24 C32,8 10,12 14,32 C17,46 34,54 42,62 C50,54 67,46 70,32 C74,12 52,8 42,24 Z"/>
+      <circle class="kite-accent" cx="27" cy="28" r="6"/>
+      <circle class="kite-accent" cx="57" cy="28" r="6"/>
+      <line class="kite-spar" x1="42" y1="20" x2="42" y2="62"/>
+      <path class="kite-tail" d="M42,62 C34,69 50,74 40,82"/>
+    </svg>`,
+    // 4. Ước mơ: Diều lục giác Rokkaku với 3 dải tua rua
+    `<svg viewBox="0 0 84 84" aria-hidden="true">
+      <polygon class="kite-body" points="42,7 66,22 66,48 42,63 18,48 18,22"/>
+      <polygon class="kite-accent" points="42,17 55,35 42,53 29,35"/>
+      <line class="kite-spar" x1="18" y1="22" x2="66" y2="22"/>
+      <line class="kite-spar" x1="18" y1="48" x2="66" y2="48"/>
+      <line class="kite-spar" x1="42" y1="7" x2="42" y2="63"/>
+      <path class="kite-tail" d="M26,54 Q23,68 27,80"/>
+      <path class="kite-tail" d="M42,63 Q45,73 40,82"/>
+      <path class="kite-tail" d="M58,54 Q61,68 57,80"/>
+    </svg>`,
+    // 5. Bản lĩnh: Diều cánh én sải rộng
+    `<svg viewBox="0 0 84 84" aria-hidden="true">
+      <path class="kite-body" d="M42,10 L74,36 L58,42 L42,58 L26,42 L10,36 Z"/>
+      <polygon class="kite-accent" points="42,16 54,36 42,48 30,36"/>
+      <line class="kite-spar" x1="10" y1="36" x2="74" y2="36"/>
+      <line class="kite-spar" x1="42" y1="10" x2="42" y2="58"/>
+      <path class="kite-tail" d="M32,48 L22,80"/>
+      <path class="kite-tail" d="M52,48 L62,80"/>
+    </svg>`,
+    // 6. Sức khỏe: Diều sáo trăng khuyết truyền thống
+    `<svg viewBox="0 0 84 84" aria-hidden="true">
+      <path class="kite-body" d="M12,38 Q42,12 72,38 Q56,48 42,46 Q28,48 12,38 Z"/>
+      <circle class="kite-accent" cx="42" cy="21" r="4.5"/>
+      <line class="kite-spar" x1="42" y1="16" x2="42" y2="56"/>
+      <path class="kite-tail" d="M22,42 Q18,62 24,79"/>
+      <path class="kite-tail" d="M42,46 Q38,65 44,82"/>
+      <path class="kite-tail" d="M62,42 Q66,62 60,79"/>
+    </svg>`
+  ];
+
+  const $ = s => document.querySelector(s);
+  const stages = [...document.querySelectorAll('.stage')];
+  let cur = 0, timers = [], snd = true, ac, master, who = '', lucky = '';
+
+  /* Thanh đường ray 5 chặng */
+  const track = $('#track');
+  const pos = i => (8 + i * (84 / 4)) + '%';
+  stages.forEach((_, i) => {
+    const d = document.createElement('i');
+    d.className = 'stop';
+    d.style.left = pos(i);
+    track.appendChild(d);
+  });
+
+  /* Render 6 cánh diều ở Toa 2 */
+  const vb = $('#vases');
+  VASES.forEach(([n, c, sub], idx) => {
+    const b = document.createElement('div');
+    b.className = 'vase';
+    b.style.setProperty('--c', c);
+    b.innerHTML = KITE_SVGS[idx] + '<b>' + n + '</b><span class="subtopic">' + sub + '</span>';
+    vb.appendChild(b);
+  });
+
+  /* Toa 3: Hiển thị 2 cái tên bay bổng */
+  function layoutNames() {
+    const sky = $('#sky');
+    sky.innerHTML = '';
+    const w = innerWidth;
+    const coords = w < 600
+      ? [{ x: 50, y: 34 }, { x: 50, y: 66 }]
+      : [{ x: 32, y: 48 }, { x: 68, y: 52 }];
+
+    NAMES.forEach((n, k) => {
+      const e = document.createElement('span');
+      e.className = 'nm';
+      e.textContent = '⛵ ' + n;
+      e.style.left = coords[k].x + '%';
+      e.style.top = coords[k].y + '%';
+      e.style.fontSize = (w < 520 ? 1.25 : 1.65) + 'rem';
+      e.style.setProperty('--x', '10px');
+      e.style.setProperty('--y', '9px');
+      e.style.setProperty('--d', (3.6 + k * 0.6) + 's');
+      e.style.setProperty('--dl', (-k * 1.4) + 's');
+      sky.appendChild(e);
+    });
+  }
+
+  /* Điều hướng giữa 5 toa */
+  function go(i) {
+    cur = i;
+    timers.forEach(clearTimeout);
+    timers = [];
+    stages.forEach((s, k) => s.classList.toggle('on', k === i));
+    document.querySelectorAll('.stop').forEach((s, k) => {
+      s.classList.toggle('done', k < i);
+      s.classList.toggle('cur', k === i);
+    });
+    $('#loco').style.left = pos(i);
+    $('#prev').disabled = i === 0;
+    $('#next').textContent = i === 4 ? 'Đi lại từ đầu' : 'Toa tiếp theo';
+    $('#next').disabled = i === 0 && !who;
+
+    if (i === 0 && who) revealWish();
+    if (i === 2) {
+      layoutNames();
+      $('#toss').disabled = false;
+    }
+    if (i === 3) {
+      $('#cname').textContent = who;
+      $('#clucky').textContent = lucky ? '“' + lucky + '”' : '';
+      initScratchCard();
+      timers.push(setTimeout(() => {
+        const r = $('#card').getBoundingClientRect();
+        burst(r.left + r.width / 2, r.top + 36, 26);
+      }, 650));
+    }
+    if (i === 4) {
+      timers.push(setTimeout(() => {
+        const r = $('#s5card').getBoundingClientRect();
+        burst(r.left + r.width / 2, r.top + 45, 34);
+        pluck(2, 880);
+      }, 500));
+    }
+  }
+
+  $('#next').onclick = () => go(cur === 4 ? 0 : cur + 1);
+  $('#prev').onclick = () => go(Math.max(0, cur - 1));
+  $('#go').onclick = () => {
+    $('#start').classList.add('noshow');
+    $('#app').classList.remove('noshow');
+    music(true);
+    go(0);
+  };
+  addEventListener('resize', () => {
+    if (cur === 2) layoutNames();
+  });
+
+  /* Lời chúc nguyên văn Toa 2 */
+  const EXTRA = [
+    [
+      "Chúc {n} học đâu hiểu đó, luôn giữ được sự tò mò và tinh thần ham học hỏi.",
+      "Đừng ngại những bài toán khó — từng bước nhỏ hôm nay sẽ tạo nên thành quả ngày mai, {n} nhé."
+    ],
+    [
+      "Mong {n} luôn có nhiều ý tưởng mới và đủ kiên nhẫn để biến chúng thành điều có ích.",
+      "Cứ tiếp tục khám phá, thử nghiệm và sáng tạo. Tương lai công nghệ cần những người nhiệt huyết như cậu!"
+    ],
+    [
+      "Chúc {n} luôn gặp được những người bạn chân thành và có thật nhiều kỷ niệm đẹp.",
+      "Hãy cứ tử tế, biết sẻ chia và cùng nhau tiến bộ. Có đồng đội tốt, hành trình nào cũng vui hơn!"
+    ],
+    [
+      "Mong những ước mơ của {n} ngày càng rõ ràng và từng bước trở thành hiện thực.",
+      "Cứ đặt mục tiêu, dũng cảm bắt đầu và kiên trì theo đuổi. Cậu làm được mà!"
+    ],
+    [
+      "Chúc {n} luôn tự tin trước thử thách và vững vàng với lựa chọn của mình.",
+      "Không cần phải hoàn hảo ngay từ đầu. Cứ cố gắng hết mình, mỗi ngày tiến bộ một chút là đáng tự hào rồi!"
+    ],
+    [
+      "Chúc {n} luôn khỏe mạnh, tràn đầy năng lượng và cân bằng giữa học tập với nghỉ ngơi.",
+      "Nhớ chăm sóc bản thân nhé. Một tinh thần thoải mái sẽ giúp cậu đi đường dài và chinh phục nhiều điều lớn lao."
+    ]
+  ];
+
+  const given = () => who.split(' ').pop();
+
+  function burst(x, y, n) {
+    if (document.body.classList.contains('nofx') || matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+    for (let i = 0; i < n; i++) {
+      const s = document.createElement('i');
+      s.className = 'sp';
+      s.style.left = x + 'px';
+      s.style.top = y + 'px';
+      document.body.appendChild(s);
+      const a = Math.random() * 6.283, d = 40 + Math.random() * 90;
+      s.animate(
+        [
+          { transform: 'translate(0,0) scale(1)', opacity: 1 },
+          { transform: `translate(${Math.cos(a) * d}px,${Math.sin(a) * d + 30}px) scale(0)`, opacity: 0 }
+        ],
+        { duration: 900 + Math.random() * 600, easing: 'cubic-bezier(.2,.7,.3,1)' }
+      ).onfinish = () => s.remove();
+    }
+  }
+
+  function revealWish() {
+    $('#wish').classList.remove('noshow');
+    document.querySelectorAll('.ln').forEach((l, k) => {
+      l.classList.remove('show');
+      timers.push(setTimeout(() => l.classList.add('show'), 900 + k * 1500));
+    });
+  }
+
+  $('#nf').onsubmit = e => {
+    e.preventDefault();
+    const v = $('#nm').value.trim().replace(/\s+/g, ' ');
+    if (!v) {
+      $('#nm').focus();
+      return;
+    }
+    who = v;
+    $('#tname').textContent = v;
+    $('#seat').textContent = String(Math.floor(Math.random() * 20) + 1).padStart(2, '0');
+    $('#nf').classList.add('noshow');
+    const t = $('#tk');
+    t.classList.remove('noshow');
+    t.classList.add('on');
+    const r = t.getBoundingClientRect();
+    burst(r.left + r.width / 2, r.top + r.height / 2, 34);
+    pluck(2, 880);
+    $('#next').disabled = false;
+    revealWish();
+  };
+
+  $('#toss').onclick = () => {
+    const btn = $('#toss'), vs = [...vb.children];
+    btn.disabled = true;
+    vs.forEach(v => v.classList.remove('lit', 'randoming'));
+    $('#vmsg').textContent = 'Đang đón gió thả diều...';
+    let ticks = 0, chosen = 0;
+    const spin = setInterval(() => {
+      vs.forEach(v => v.classList.remove('randoming'));
+      chosen = Math.floor(Math.random() * vs.length);
+      vs[chosen].classList.add('randoming');
+      ticks++;
+      if (ticks >= 14) {
+        clearInterval(spin);
+        vs.forEach(v => v.classList.remove('randoming'));
+        const v = vs[chosen], topic = VASES[chosen];
+        v.classList.add('lit');
+        pluck(chosen, [523.25, 659.25, 783.99, 880, 1046.5, 987.77][chosen]);
+        const r = v.getBoundingClientRect();
+        burst(r.left + r.width / 2, r.top + 35, 28);
+        const pool = [...EXTRA[chosen]];
+        const w = pool[Math.floor(Math.random() * pool.length)];
+        lucky = w.replaceAll('{n}', given());
+        const title = document.createElement('b');
+        title.textContent = '🪁 Tín hiệu từ cánh diều ' + topic[0];
+        $('#vmsg').replaceChildren(title, document.createElement('br'), document.createTextNode(lucky));
+        btn.disabled = false;
+        btn.textContent = 'Thả cánh diều khác';
+      }
+    }, 90);
+  };
+
+  /* ==================== TOA 4: VÉ CÀO MAY MẮN BÍ ẨN ==================== */
+  const PRIZES = [
+    { icon: "🌪️🤗", name: "Cái ôm lốc xoáy" },
+    { icon: "🍭", name: "Kẹo mút Chupa Chups" },
+    { icon: "🧱", name: "LEGO lắp ráp" },
+    { icon: "🌭", name: "Xúc xích Pony" }
+  ];
+
+  let scratchDone = false, isScratching = false, lastScratchCheck = 0;
+
+  function initScratchCard() {
+    const chosen = PRIZES[Math.floor(Math.random() * PRIZES.length)];
+    $('#prizeIcon').textContent = chosen.icon;
+    $('#prizeTitle').textContent = chosen.name;
+
+    scratchDone = false;
+    const cv = $('#scratchCv');
+    cv.classList.remove('done');
+    const ctx = cv.getContext('2d', { willReadFrequently: true });
+    const w = cv.width, h = cv.height;
+
+    ctx.globalCompositeOperation = 'source-over';
+    const g = ctx.createLinearGradient(0, 0, w, h);
+    g.addColorStop(0, '#f5d77f');
+    g.addColorStop(0.5, '#6ee7b7');
+    g.addColorStop(1, '#d9b04f');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+    for (let i = 0; i < 28; i++) {
+      ctx.beginPath();
+      ctx.arc(Math.random() * w, Math.random() * h, 1.5 + Math.random() * 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = '#051c14';
+    ctx.font = '700 16px "Be Vietnam Pro", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('✨ CÀO LỚP NHŨ NHẬN QUÀ BÍ ẨN ✨', w / 2, h / 2 - 4);
+    ctx.font = '500 12px "Be Vietnam Pro", sans-serif';
+    ctx.fillText('(Chà ngón tay hoặc chuột vào đây)', w / 2, h / 2 + 18);
+  }
+
+  function getScratchXY(cv, e) {
+    const r = cv.getBoundingClientRect();
+    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+    const cy = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      x: ((cx - r.left) / r.width) * cv.width,
+      y: ((cy - r.top) / r.height) * cv.height
+    };
+  }
+
+  function doScratch(x, y) {
+    if (scratchDone) return;
+    const cv = $('#scratchCv');
+    const ctx = cv.getContext('2d', { willReadFrequently: true });
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(x, y, 22, 0, Math.PI * 2);
+    ctx.fill();
+
+    const now = performance.now();
+    if (now - lastScratchCheck > 100) {
+      lastScratchCheck = now;
+      checkScratchDone();
+    }
+  }
+
+  function checkScratchDone() {
+    if (scratchDone) return;
+    const cv = $('#scratchCv');
+    const ctx = cv.getContext('2d', { willReadFrequently: true });
+    const data = ctx.getImageData(0, 0, cv.width, cv.height).data;
+    let cleared = 0, total = 0;
+    for (let i = 3; i < data.length; i += 32) {
+      total++;
+      if (data[i] === 0) cleared++;
+    }
+    if (cleared / total > 0.38) {
+      scratchDone = true;
+      cv.classList.add('done');
+      const r = cv.getBoundingClientRect();
+      burst(r.left + r.width / 2, r.top + r.height / 2, 30);
+      pluck(3, 1046.5);
+    }
+  }
+
+  const sCv = $('#scratchCv');
+  sCv.addEventListener('mousedown', e => {
+    isScratching = true;
+    const p = getScratchXY(sCv, e);
+    doScratch(p.x, p.y);
+  });
+  sCv.addEventListener('mousemove', e => {
+    if (!isScratching) return;
+    const p = getScratchXY(sCv, e);
+    doScratch(p.x, p.y);
+  });
+  addEventListener('mouseup', () => {
+    if (isScratching) {
+      isScratching = false;
+      checkScratchDone();
+    }
+  });
+
+  sCv.addEventListener('touchstart', e => {
+    e.preventDefault();
+    isScratching = true;
+    const p = getScratchXY(sCv, e);
+    doScratch(p.x, p.y);
+  }, { passive: false });
+  sCv.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (!isScratching) return;
+    const p = getScratchXY(sCv, e);
+    doScratch(p.x, p.y);
+  }, { passive: false });
+  sCv.addEventListener('touchend', () => {
+    if (isScratching) {
+      isScratching = false;
+      checkScratchDone();
+    }
+  });
+
+  $('#reScratchBtn').onclick = () => initScratchCard();
+
+  /* Nút bật/tắt Nhạc nền & Hiệu ứng */
+  $('#bm').onclick = e => {
+    snd = !snd;
+    e.target.setAttribute('aria-pressed', snd);
+    music(snd);
+  };
+  $('#bf').onclick = e => {
+    const on = e.target.getAttribute('aria-pressed') !== 'true';
+    e.target.setAttribute('aria-pressed', on);
+    document.body.classList.toggle('nofx', !on);
+  };
+
+  /* Giai điệu Web Audio API vui tươi */
+  let musicTimer = null, musicStep = 0;
+  function music(on) {
+    try {
+      if (!ac) {
+        ac = new (window.AudioContext || window.webkitAudioContext)();
+        master = ac.createGain();
+        master.gain.value = 0;
+        master.connect(ac.destination);
+        const melody = [
+          523.25, 659.25, 783.99, 659.25, 587.33, 698.46, 880, 698.46,
+          523.25, 659.25, 783.99, 1046.5, 880, 783.99, 659.25, 587.33
+        ];
+        const bass = [130.81, 130.81, 164.81, 164.81, 174.61, 174.61, 146.83, 146.83];
+        musicTimer = setInterval(() => {
+          if (!snd || !ac || ac.state !== "running") return;
+          const t = ac.currentTime, n = musicStep++;
+          const f = melody[n % melody.length];
+          const o = ac.createOscillator(), g = ac.createGain();
+          o.type = "triangle";
+          o.frequency.setValueAtTime(f, t);
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(0.07, t + 0.025);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.34);
+          o.connect(g).connect(master);
+          o.start(t);
+          o.stop(t + 0.36);
+
+          if (n % 2 === 0) {
+            const b = ac.createOscillator(), bg = ac.createGain();
+            b.type = "sine";
+            b.frequency.setValueAtTime(bass[Math.floor(n / 2) % bass.length], t);
+            bg.gain.setValueAtTime(0.0001, t);
+            bg.gain.exponentialRampToValueAtTime(0.045, t + 0.02);
+            bg.gain.exponentialRampToValueAtTime(0.0001, t + 0.24);
+            b.connect(bg).connect(master);
+            b.start(t);
+            b.stop(t + 0.26);
+          }
+        }, 400);
+      }
+      if (ac.state === "suspended") ac.resume();
+      master.gain.setTargetAtTime(on ? 0.72 : 0, ac.currentTime, 0.25);
+    } catch (e) {}
+  }
+
+  function pluck(k, f) {
+    try {
+      if (!ac || !snd) return;
+      f = f || [523.25, 659.25, 783.99][Math.floor(k) % 3];
+      const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime;
+      o.type = 'triangle';
+      o.frequency.value = f;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.12, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0008, t + 1.5);
+      o.connect(g).connect(master);
+      o.start(t);
+      o.stop(t + 1.6);
+    } catch (e) {}
+  }
+
+  /* Các biểu tượng trôi nổi nhẹ nhàng ở nền */
+  (function () {
+    const layer = document.getElementById('floatingToys');
+    if (!layer) return;
+    const items = ['⛵', '🍃', '🌿', '🪁', '🧭', '🍀', '🌊'];
+    const count = innerWidth < 520 ? 15 : 24;
+    for (let i = 0; i < count; i++) {
+      const el = document.createElement('span');
+      el.className = 'floating-toy';
+      el.textContent = items[i % items.length];
+      el.style.setProperty('--left', (Math.random() * 94 + 3) + '%');
+      el.style.setProperty('--top', (Math.random() * 90 + 4) + '%');
+      el.style.setProperty('--size', (1.15 + Math.random() * 1.3) + 'rem');
+      el.style.setProperty('--opacity', (0.14 + Math.random() * 0.2).toFixed(2));
+      el.style.setProperty('--rotate', (Math.random() * 32 - 16) + 'deg');
+      el.style.setProperty('--duration', (5.5 + Math.random() * 6.5) + 's');
+      el.style.setProperty('--delay', (-Math.random() * 8) + 's');
+      el.style.setProperty('--drift', (8 + Math.random() * 20) + 'px');
+      layer.appendChild(el);
+    }
+  })();
+
+  /* Đom đóm xanh ngọc lấp lánh trên nền Canvas */
+  (function () {
+    const cv = $('#cv'), x = cv.getContext('2d');
+    let W, H, S = [];
+    function size() {
+      W = cv.width = innerWidth;
+      H = cv.height = innerHeight;
+      S = Array.from({ length: Math.round(W * H / 10000) }, () => ({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.6 + 0.4,
+        p: Math.random() * 6,
+        v: Math.random() * 0.16 + 0.04
+      }));
+    }
+    size();
+    addEventListener('resize', size);
+    (function draw(t) {
+      x.clearRect(0, 0, W, H);
+      S.forEach(s => {
+        s.y -= s.v;
+        if (s.y < -2) { s.y = H + 2; s.x = Math.random() * W; }
+        x.globalAlpha = 0.3 + 0.45 * Math.sin(t / 900 + s.p) ** 2;
+        x.fillStyle = '#a7f3d0';
+        x.beginPath();
+        x.arc(s.x, s.y, s.r, 0, 6.283);
+        x.fill();
+      });
+      requestAnimationFrame(draw);
+    })(0);
+  })();
+</script>
+</body>
+</html>
